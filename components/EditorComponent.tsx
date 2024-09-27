@@ -1,19 +1,28 @@
 "use client";
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { createEditor, Transforms } from "slate";
-import { Slate, Editable, withReact } from "slate-react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createEditor, Editor, Transforms } from "slate";
+import { Slate, Editable, withReact, ReactEditor } from "slate-react";
 import { withHistory } from "slate-history";
-import hljs from "highlight.js";
-import "highlight.js/styles/default.css";
+import TextareaAutosize from "react-textarea-autosize";
 
 type CustomElement =
   | { type: "paragraph"; children: CustomText[] }
   | { type: "code"; children: CustomText[] }
+  | { type: "image"; src: string; children: CustomText[] }
   | { type: "heading"; level: number; children: CustomText[] };
 type CustomText = { text: string };
 
 const EditorComponent = () => {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const editor = useMemo(
+    () => withImages(withHistory(withReact(createEditor()))),
+    []
+  );
   const [value, setValue] = useState<CustomElement[]>([
     { type: "paragraph", children: [{ text: "" }] },
   ]);
@@ -22,21 +31,38 @@ const EditorComponent = () => {
     top: number;
     left: number;
   } | null>(null);
+
   const toolbarRef = useRef<HTMLElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const editorRef = useRef(null);
+
   const renderElement = useCallback((props) => {
     switch (props.element.type) {
       case "heading":
         return <HeadingElement {...props} />;
       case "code": {
-        return <CodeElement />;
+        return <CodeElement {...props} />;
+      }
+      case "image": {
+        return <ImageElement {...props} />;
       }
       default:
         return <DefaultElement {...props} />;
     }
   }, []);
 
+  const insertImage = (url: string) => {
+    const text = { text: "" };
+    const image = { type: "image", url, children: [text] };
+    Transforms.insertNodes(editor, image);
+  };
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [editor]);
+
   const onKeyDown = (event: React.KeyboardEvent) => {
-    console.log(editor);
+    console.log();
     if (event.key === "/") {
       event.preventDefault();
       const { selection } = editor;
@@ -55,28 +81,70 @@ const EditorComponent = () => {
         }
       }
     }
-    if (event.key === "```") {
-      console.log("backtick event");
-    }
   };
 
-  const insertBlock = (type: "heading" | "paragraph" | "code") => {
+  const insertBlock = (type: "heading" | "paragraph" | "code" | "image") => {
+    // if (type === "image") {
+    //   const fileInput = document.createElement("input");
+    //   fileInput.type = "file";
+    //   fileInput.accept = "image/*";
+
+    //   fileInput.onchange = () => {
+    //     const file = fileInput.files?.[0];
+    //     if (file) {
+    //       const reader = new FileReader();
+
+    //       reader.onload = () => {
+    //         const url = reader.result;
+    //         if (url) {
+    //           insertImage(url.toString());
+    //         }
+    //       };
+
+    //       reader.readAsDataURL(file);
+    //     }
+    //   };
+
+    //   fileInput.click();
+    // } else {
     const block = { type, children: [{ text: "" }] };
     Transforms.insertNodes(editor, block);
+
+    ReactEditor.focus(editor);
+    // }
     setShowToolbar(false);
   };
 
   const initialValue = [
     {
       type: "paragraph",
-      children: [{ text: "A line of text in a paragraph." }],
+      children: [{ text: "" }],
     },
   ];
   if (showToolbar) {
     toolbarRef.current?.focus();
   }
+  console.log(value);
   return (
     <div className="relative">
+      <div className="prose prose-stone">
+        <TextareaAutosize
+          ref={textareaRef}
+          placeholder="Untitled.."
+          className="p-2
+            rounded
+            w-full
+            resize-none
+            appearance-none
+            overflow-hidden
+            bg-transparent
+            text-5xl
+            font-bold
+            focus:outline-none
+            text-slate-800
+            autoFocus"
+        />
+      </div>
       <Slate
         editor={editor}
         value={value}
@@ -86,7 +154,7 @@ const EditorComponent = () => {
         <Editable
           renderElement={renderElement}
           onKeyDown={onKeyDown}
-          className="border border-gray-300 p-4 rounded"
+          className="focus:outline-none"
         />
       </Slate>
 
@@ -119,6 +187,14 @@ const EditorComponent = () => {
               Code
             </button>
           </li>
+          <li>
+            <button
+              className="block px-2 py-1 hover:bg-gray-200"
+              onClick={() => insertBlock("image")}
+            >
+              Image
+            </button>
+          </li>
         </ul>
       )}
     </div>
@@ -137,27 +213,35 @@ const HeadingElement = (props: any) => {
   );
 };
 
-class CodeElement extends React.Component {
-  componentDidMount() {
-    this.highlightCode();
-  }
+const CodeElement = (props: any) => {
+  return (
+    <pre className="bg-gray-800 text-green-300" {...props.attributes}>
+      <code>{props.children}</code>
+    </pre>
+  );
+};
 
-  componentDidUpdate() {
-    this.highlightCode();
-  }
+const ImageElement = ({ attributes, children, element }: any) => {
+  return (
+    <div {...attributes} className="my-4">
+      <div contentEditable={false}>
+        <img
+          src={element.url}
+          alt="Slate Image"
+          className="max-w-full h-auto"
+        />
+      </div>
+      {children}
+    </div>
+  );
+};
+const withImages = (editor: Editor) => {
+  const { isVoid } = editor;
 
-  highlightCode() {
-    const nodes = document.querySelectorAll("pre code");
-    nodes.forEach((node) => hljs.highlightBlock(node));
-  }
+  editor.isVoid = (element) => {
+    return element.type === "image" ? true : isVoid(element);
+  };
 
-  render() {
-    return (
-      <pre {...this.props.attributes}>
-        <code>{this.props.children}</code>
-      </pre>
-    );
-  }
-}
-
+  return editor;
+};
 export default EditorComponent;
