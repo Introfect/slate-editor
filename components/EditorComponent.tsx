@@ -31,7 +31,9 @@ const EditorComponent = () => {
     top: number;
     left: number;
   } | null>(null);
-
+  const [selectedBlockType, setSelectedBlockType] = useState<
+    "paragraph" | "heading" | "table" | "image"
+  >("paragraph");
   const toolbarRef = useRef<HTMLElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const editorRef = useRef(null);
@@ -79,6 +81,21 @@ const EditorComponent = () => {
           });
           setShowToolbar(!showToolbar);
         }
+      }
+    }
+    if (event.key === "Enter") {
+      const { selection } = editor;
+
+      if (selection) {
+        const [match] = Editor.nodes(editor, {
+          match: (n) => n.type === "heading",
+        });
+
+        const type = match ? "paragraph" : selectedBlockType;
+        const newBlock = { type, children: [{ text: "" }] };
+
+        Transforms.insertNodes(editor, newBlock);
+        setShowToolbar(false);
       }
     }
   };
