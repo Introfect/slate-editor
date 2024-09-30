@@ -1,24 +1,25 @@
 /* eslint-disable @next/next/no-img-element */
 import { RenderElementProps } from "slate-react";
+import BlockWrapper from "./BlockWrapper";
 
-const ImageElement = ({
-  attributes,
-  children,
-  element,
-}: RenderElementProps) => {
-  console.log(element, "attributes");
-  if (element.type === "image")
-    return (
-      <div {...attributes} className="my-4">
+const ImageElement = (props: RenderElementProps) => {
+  if (props.element.type !== "image") {
+    throw new Error("The element must be Image element");
+  }
+
+  return (
+    <BlockWrapper {...props}>
+      <div {...props.attributes} className="my-4">
         <div contentEditable={false}>
           <img
-            src={element.src}
+            src={props.element.src}
             alt="Slate Image"
             className="w-96 h-auto rounded-lg overflow-hidden"
           />
         </div>
-        {children}
+        {props.children}
       </div>
-    );
+    </BlockWrapper>
+  );
 };
 export default ImageElement;

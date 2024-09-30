@@ -18,13 +18,13 @@ import {
   Editable,
   withReact,
   ReactEditor,
-  DefaultElement,
   RenderElementProps,
 } from "slate-react";
 import { HistoryEditor, withHistory } from "slate-history";
 import HeadingElement from "./HeadingElement";
 import CodeElement from "./CodeElement";
 import ImageElement from "./ImageElement";
+import ParagraphElement from "./ParagraphElement";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 type CustomElement =
@@ -49,6 +49,7 @@ const EditorComponent = () => {
   );
 
   const [value, setValue] = useState<Descendant[]>([]);
+  console.log(value);
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
@@ -59,7 +60,6 @@ const EditorComponent = () => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const renderElement = useCallback((props: RenderElementProps) => {
-    console.log(props, "type");
     switch (props.element.type) {
       case "heading":
         return <HeadingElement {...props} />;
@@ -70,7 +70,7 @@ const EditorComponent = () => {
         return <ImageElement {...props} />;
       }
       default:
-        return <DefaultElement {...props} />;
+        return <ParagraphElement {...props} />;
     }
   }, []);
 
@@ -78,6 +78,10 @@ const EditorComponent = () => {
     const text = { text: "" };
     const image: CustomElement = { type: "image", src, children: [text] };
     Transforms.insertNodes(editor, image);
+    const type = "paragraph";
+    const newBlock: CustomElement = { type, children: [{ text: "" }] };
+    Transforms.insertNodes(editor, newBlock);
+    ReactEditor.focus(editor);
   };
 
   useEffect(() => {
@@ -85,7 +89,6 @@ const EditorComponent = () => {
   }, [editor]);
 
   const onKeyDown = (event: React.KeyboardEvent) => {
-    console.log();
     if (event.key === "/") {
       event.preventDefault();
       const { selection } = editor;
@@ -105,6 +108,7 @@ const EditorComponent = () => {
       }
     }
     if (event.key === "Enter") {
+      console.log("Enter event");
       const { selection } = editor;
 
       if (selection) {
@@ -112,8 +116,8 @@ const EditorComponent = () => {
         const newBlock: CustomElement = { type, children: [{ text: "" }] };
 
         Transforms.insertNodes(editor, newBlock);
-        setShowToolbar(false);
       }
+      setShowToolbar(false);
     }
   };
 
@@ -157,7 +161,6 @@ const EditorComponent = () => {
   if (showToolbar) {
     toolbarRef.current?.focus();
   }
-  console.log(value);
   return (
     <div className="relative">
       <Slate

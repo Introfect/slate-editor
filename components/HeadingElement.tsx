@@ -1,10 +1,13 @@
 import { RenderElementProps } from "slate-react";
+import BlockWrapper from "./BlockWrapper";
 
 const HeadingElement = (props: RenderElementProps) => {
   return (
-    <p {...props.attributes} className="text-3xl font-bold text-slate-700">
-      {props.children}
-    </p>
+    <BlockWrapper {...props}>
+      <p {...props.attributes} className="text-3xl font-bold text-slate-700">
+        {props.children}
+      </p>
+    </BlockWrapper>
   );
 };
 
