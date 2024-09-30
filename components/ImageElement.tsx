@@ -14,7 +14,7 @@ const ImageElement = ({
           <img
             src={element.src}
             alt="Slate Image"
-            className="max-w-full h-auto"
+            className="w-96 h-auto rounded-lg overflow-hidden"
           />
         </div>
         {children}

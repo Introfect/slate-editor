@@ -11,7 +11,7 @@ const BlockWrapper = ({
   const [showOptions, setShowOptions] = useState(false);
 
   const deleteBlock = () => {
-    const path = Editor.findPath(editor, element);
+    const path = Editor.path(editor, element);
     Transforms.removeNodes(editor, { at: path });
   };
 
