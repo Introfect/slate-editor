@@ -1,58 +1,66 @@
 "use client";
 import React, {
-  Children,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { createEditor, Editor, Transforms } from "slate";
+import {
+  BaseEditor,
+  createEditor,
+  Descendant,
+  Editor,
+  Transforms,
+} from "slate";
 import {
   Slate,
   Editable,
   withReact,
   ReactEditor,
   DefaultElement,
+  RenderElementProps,
 } from "slate-react";
-import { withHistory } from "slate-history";
-import TextareaAutosize from "react-textarea-autosize";
-import BlockWrapper from "./BlockWrapper";
+import { HistoryEditor, withHistory } from "slate-history";
 import HeadingElement from "./HeadingElement";
 import CodeElement from "./CodeElement";
 import ImageElement from "./ImageElement";
 
+export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
+
 type CustomElement =
+  | { type: "image"; src: string; children: CustomText[] }
   | { type: "paragraph"; children: CustomText[] }
   | { type: "code"; children: CustomText[] }
-  | { type: "image"; src: string; children: CustomText[] }
-  | { type: "heading"; level: number; children: CustomText[] };
+  | { type: "heading"; children: CustomText[] };
 type CustomText = { text: string };
 
+declare module "slate" {
+  interface CustomTypes {
+    Editor: CustomEditor;
+    Element: CustomElement;
+    Text: CustomText;
+  }
+}
 const EditorComponent = () => {
   const editor = useMemo(
     () => withImages(withHistory(withReact(createEditor()))),
     []
   );
-  const [value, setValue] = useState<CustomElement[]>([
-    { type: "paragraph", children: [{ text: "" }] },
-  ]);
+  const [value, setValue] = useState<Descendant[]>([]);
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
     left: number;
   } | null>(null);
-  const [selectedBlockType, setSelectedBlockType] = useState<
-    "paragraph" | "heading" | "table" | "image"
-  >("paragraph");
-  const toolbarRef = useRef<HTMLElement | null>(null);
+  const toolbarRef = useRef<HTMLLIElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const editorRef = useRef(null);
 
-  const renderElement = useCallback((props) => {
+  const renderElement = useCallback((props: RenderElementProps) => {
+    console.log(props, "type");
     switch (props.element.type) {
       case "heading":
-        <HeadingElement {...props} />;
+        return <HeadingElement {...props} />;
       case "code": {
         return <CodeElement {...props} />;
       }
@@ -64,9 +72,9 @@ const EditorComponent = () => {
     }
   }, []);
 
-  const insertImage = (url: string) => {
+  const insertImage = (src: string) => {
     const text = { text: "" };
-    const image = { type: "image", url, children: [text] };
+    const image: CustomElement = { type: "image", src, children: [text] };
     Transforms.insertNodes(editor, image);
   };
 
@@ -98,12 +106,8 @@ const EditorComponent = () => {
       const { selection } = editor;
 
       if (selection) {
-        const [match] = Editor.nodes(editor, {
-          match: (n) => n.type === "heading",
-        });
-
-        const type = match ? "paragraph" : selectedBlockType;
-        const newBlock = { type, children: [{ text: "" }] };
+        const type = "paragraph";
+        const newBlock: CustomElement = { type, children: [{ text: "" }] };
 
         Transforms.insertNodes(editor, newBlock);
         setShowToolbar(false);
@@ -112,39 +116,39 @@ const EditorComponent = () => {
   };
 
   const insertBlock = (type: "heading" | "paragraph" | "code" | "image") => {
-    // if (type === "image") {
-    //   const fileInput = document.createElement("input");
-    //   fileInput.type = "file";
-    //   fileInput.accept = "image/*";
+    if (type === "image") {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
 
-    //   fileInput.onchange = () => {
-    //     const file = fileInput.files?.[0];
-    //     if (file) {
-    //       const reader = new FileReader();
+      fileInput.onchange = () => {
+        const file = fileInput.files?.[0];
+        if (file) {
+          const reader = new FileReader();
 
-    //       reader.onload = () => {
-    //         const url = reader.result;
-    //         if (url) {
-    //           insertImage(url.toString());
-    //         }
-    //       };
+          reader.onload = () => {
+            const url = reader.result;
+            if (url) {
+              insertImage(url.toString());
+            }
+          };
 
-    //       reader.readAsDataURL(file);
-    //     }
-    //   };
+          reader.readAsDataURL(file);
+        }
+      };
 
-    //   fileInput.click();
-    // } else {
-    const block = { type, children: [{ text: "" }] };
-    Transforms.insertNodes(editor, block);
-    ReactEditor.focus(editor);
-    // }
+      fileInput.click();
+    } else {
+      const block = { type, children: [{ text: "" }] };
+      Transforms.insertNodes(editor, block);
+      ReactEditor.focus(editor);
+    }
     setShowToolbar(false);
   };
 
-  const initialValue = [
+  const initialValue: Descendant[] = [
     {
-      type: "paragraph",
+      type: "heading",
       children: [{ text: "" }],
     },
   ];
@@ -154,31 +158,13 @@ const EditorComponent = () => {
   console.log(value);
   return (
     <div className="relative">
-      <div className="prose prose-stone">
-        <TextareaAutosize
-          ref={textareaRef}
-          placeholder="Untitled.."
-          className="p-2
-            rounded
-            w-full
-            resize-none
-            appearance-none
-            overflow-hidden
-            bg-transparent
-            text-5xl
-            font-bold
-            focus:outline-none
-            text-slate-800
-            autoFocus"
-        />
-      </div>
       <Slate
         editor={editor}
-        value={value}
         onChange={(value) => setValue(value)}
         initialValue={initialValue}
       >
         <Editable
+          placeholder="Start typing or use / for commands"
           renderElement={renderElement}
           onKeyDown={onKeyDown}
           className="focus:outline-none"

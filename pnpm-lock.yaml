@@ -32,6 +32,9 @@ importers:
       slate-history:
         specifier: ^0.109.0
         version: 0.109.0(slate@0.103.0)
+      slate-prop-types:
+        specifier: ^0.5.44
+        version: 0.5.44(immutable@4.3.7)(slate@0.103.0)
       slate-react:
         specifier: ^0.110.1
         version: 0.110.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(slate@0.103.0)
@@ -831,6 +834,9 @@ packages:
   immer@10.1.1:
     resolution: {integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==}
 
+  immutable@4.3.7:
+    resolution: {integrity: sha512-1hqclzwYwjRDFLjcFxOM5AYkkG0rpFPpr1RLPMEuGczoS7YA8gLhy8SWXYRAA/XwfEHpfo3cw5JGioS32fnMRw==}
+
   import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
@@ -1395,6 +1401,12 @@ packages:
     resolution: {integrity: sha512-DHavPwrTTAEAV66eAocB3iQHEj65N6IVtbRK98ZuqGT0S44T3zXlhzY+5SZ7EPxRcoOYVt1dioRxXYM/+PmCiQ==}
     peerDependencies:
       slate: '>=0.65.3'
+
+  slate-prop-types@0.5.44:
+    resolution: {integrity: sha512-JS0iW7uaciE/W3ADuzeN1HOnSjncQhHPXJ65nZNQzB0DF7mXVmbwQKI6cmCo/xKni7XRJT0JbWSpXFhEdPiBUA==}
+    peerDependencies:
+      immutable: '>=3.8.1'
+      slate: '>=0.32.0 <0.50.0'
 
   slate-react@0.110.1:
     resolution: {integrity: sha512-bx6J0PkY9A50O4w78k4NPqNOXGo49fmSbCRgr8OBDWKKo4BeSt9y3vGXCkQ/Mm4lQ8riyRKr3TrJXzqMY7lRZg==}
@@ -2615,6 +2627,8 @@ snapshots:
 
   immer@10.1.1: {}
 
+  immutable@4.3.7: {}
+
   import-fresh@3.3.0:
     dependencies:
       parent-module: 1.0.1
@@ -3175,6 +3189,11 @@ snapshots:
   slate-history@0.109.0(slate@0.103.0):
     dependencies:
       is-plain-object: 5.0.0
+      slate: 0.103.0
+
+  slate-prop-types@0.5.44(immutable@4.3.7)(slate@0.103.0):
+    dependencies:
+      immutable: 4.3.7
       slate: 0.103.0
 
   slate-react@0.110.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(slate@0.103.0):

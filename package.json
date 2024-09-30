@@ -17,6 +17,7 @@
     "react-textarea-autosize": "^8.5.3",
     "slate": "^0.103.0",
     "slate-history": "^0.109.0",
+    "slate-prop-types": "^0.5.44",
     "slate-react": "^0.110.1"
   },
   "devDependencies": {

@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Editor, Transforms } from "slate";
-import { useSlate } from "slate-react";
+import { RenderElementProps, useSlate } from "slate-react";
 
-const BlockWrapper = ({ attributes, children, element }) => {
+const BlockWrapper = ({
+  attributes,
+  children,
+  element,
+}: RenderElementProps) => {
   const editor = useSlate();
   const [showOptions, setShowOptions] = useState(false);
 
