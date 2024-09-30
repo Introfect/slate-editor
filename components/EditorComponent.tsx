@@ -1,5 +1,6 @@
 "use client";
 import React, {
+  Children,
   useCallback,
   useEffect,
   useMemo,
@@ -7,9 +8,19 @@ import React, {
   useState,
 } from "react";
 import { createEditor, Editor, Transforms } from "slate";
-import { Slate, Editable, withReact, ReactEditor } from "slate-react";
+import {
+  Slate,
+  Editable,
+  withReact,
+  ReactEditor,
+  DefaultElement,
+} from "slate-react";
 import { withHistory } from "slate-history";
 import TextareaAutosize from "react-textarea-autosize";
+import BlockWrapper from "./BlockWrapper";
+import HeadingElement from "./HeadingElement";
+import CodeElement from "./CodeElement";
+import ImageElement from "./ImageElement";
 
 type CustomElement =
   | { type: "paragraph"; children: CustomText[] }
@@ -41,7 +52,7 @@ const EditorComponent = () => {
   const renderElement = useCallback((props) => {
     switch (props.element.type) {
       case "heading":
-        return <HeadingElement {...props} />;
+        <HeadingElement {...props} />;
       case "code": {
         return <CodeElement {...props} />;
       }
@@ -126,7 +137,6 @@ const EditorComponent = () => {
     // } else {
     const block = { type, children: [{ text: "" }] };
     Transforms.insertNodes(editor, block);
-
     ReactEditor.focus(editor);
     // }
     setShowToolbar(false);
@@ -172,6 +182,7 @@ const EditorComponent = () => {
           renderElement={renderElement}
           onKeyDown={onKeyDown}
           className="focus:outline-none"
+          autoFocus
         />
       </Slate>
 
@@ -218,40 +229,6 @@ const EditorComponent = () => {
   );
 };
 
-const DefaultElement = (props: any) => {
-  return <p {...props.attributes}>{props.children}</p>;
-};
-
-const HeadingElement = (props: any) => {
-  return (
-    <p {...props.attributes} className="text-3xl font-bold text-slate-700">
-      {props.children}
-    </p>
-  );
-};
-
-const CodeElement = (props: any) => {
-  return (
-    <pre className="bg-gray-800 text-green-300" {...props.attributes}>
-      <code>{props.children}</code>
-    </pre>
-  );
-};
-
-const ImageElement = ({ attributes, children, element }: any) => {
-  return (
-    <div {...attributes} className="my-4">
-      <div contentEditable={false}>
-        <img
-          src={element.url}
-          alt="Slate Image"
-          className="max-w-full h-auto"
-        />
-      </div>
-      {children}
-    </div>
-  );
-};
 const withImages = (editor: Editor) => {
   const { isVoid } = editor;
 
