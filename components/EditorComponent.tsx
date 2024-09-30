@@ -27,12 +27,12 @@ import CodeElement from "./CodeElement";
 import ImageElement from "./ImageElement";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
-
 type CustomElement =
   | { type: "image"; src: string; children: CustomText[] }
   | { type: "paragraph"; children: CustomText[] }
   | { type: "code"; children: CustomText[] }
   | { type: "heading"; children: CustomText[] };
+
 type CustomText = { text: string };
 
 declare module "slate" {
@@ -47,12 +47,14 @@ const EditorComponent = () => {
     () => withImages(withHistory(withReact(createEditor()))),
     []
   );
+
   const [value, setValue] = useState<Descendant[]>([]);
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
     left: number;
   } | null>(null);
+
   const toolbarRef = useRef<HTMLLIElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 

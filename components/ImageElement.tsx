@@ -7,18 +7,18 @@ const ImageElement = ({
   element,
 }: RenderElementProps) => {
   console.log(element, "attributes");
-  return (
-    <div {...attributes} className="my-4">
-      <div contentEditable={false}>
-        <img
-          src={element.src}
-          alt="Slate Image"
-          className="max-w-full h-auto"
-        />
+  if (element.type === "image")
+    return (
+      <div {...attributes} className="my-4">
+        <div contentEditable={false}>
+          <img
+            src={element.src}
+            alt="Slate Image"
+            className="max-w-full h-auto"
+          />
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
-  );
+    );
 };
-
 export default ImageElement;
