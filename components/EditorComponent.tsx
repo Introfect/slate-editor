@@ -25,13 +25,15 @@ import HeadingElement from "./HeadingElement";
 import CodeElement from "./CodeElement";
 import ImageElement from "./ImageElement";
 import ParagraphElement from "./ParagraphElement";
+import LineBreak from "./LineBreak";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 type CustomElement =
   | { type: "image"; src: string; children: CustomText[] }
   | { type: "paragraph"; children: CustomText[] }
   | { type: "code"; children: CustomText[] }
-  | { type: "heading"; children: CustomText[] };
+  | { type: "heading"; children: CustomText[] }
+  | { type: "lineBreak"; children: CustomText[] };
 
 type CustomText = { text: string };
 
@@ -68,6 +70,9 @@ const EditorComponent = () => {
       }
       case "image": {
         return <ImageElement {...props} />;
+      }
+      case "lineBreak": {
+        return <LineBreak {...props} />;
       }
       default:
         return <ParagraphElement {...props} />;
@@ -121,7 +126,9 @@ const EditorComponent = () => {
     }
   };
 
-  const insertBlock = (type: "heading" | "paragraph" | "code" | "image") => {
+  const insertBlock = (
+    type: "heading" | "paragraph" | "code" | "image" | "lineBreak"
+  ) => {
     if (type === "image") {
       const fileInput = document.createElement("input");
       fileInput.type = "file";
@@ -144,6 +151,9 @@ const EditorComponent = () => {
       };
 
       fileInput.click();
+    } else if (type === "lineBreak") {
+      const block = { type, children: [{ text: "" }] };
+      Transforms.insertNodes(editor, block);
     } else {
       const block = { type, children: [{ text: "" }] };
       Transforms.insertNodes(editor, block);
@@ -212,6 +222,14 @@ const EditorComponent = () => {
               onClick={() => insertBlock("image")}
             >
               Image
+            </button>
+          </li>
+          <li>
+            <button
+              className="block px-2 py-1 hover:bg-gray-200"
+              onClick={() => insertBlock("lineBreak")}
+            >
+              Line Break
             </button>
           </li>
         </ul>
