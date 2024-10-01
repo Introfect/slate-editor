@@ -26,6 +26,8 @@ import CodeElement from "./CodeElement";
 import ImageElement from "./ImageElement";
 import ParagraphElement from "./ParagraphElement";
 import LineBreak from "./LineBreak";
+import UnorderdListPlugin from "./UnorderdListPlugin";
+import { Tools } from "@/utils/constants";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 type CustomElement =
@@ -33,7 +35,8 @@ type CustomElement =
   | { type: "paragraph"; children: CustomText[] }
   | { type: "code"; children: CustomText[] }
   | { type: "heading"; children: CustomText[] }
-  | { type: "lineBreak"; children: CustomText[] };
+  | { type: "lineBreak"; children: CustomText[] }
+  | { type: "unorderedlist"; children: CustomText[] };
 
 type CustomText = { text: string };
 
@@ -74,6 +77,9 @@ const EditorComponent = () => {
       case "lineBreak": {
         return <LineBreak {...props} />;
       }
+      case "unorderedlist": {
+        return <UnorderdListPlugin {...props} />;
+      }
       default:
         return <ParagraphElement {...props} />;
     }
@@ -112,6 +118,8 @@ const EditorComponent = () => {
         }
       }
     }
+    if (event.key === "ArrowDown") {
+    }
     if (event.key === "Enter") {
       console.log("Enter event");
       const { selection } = editor;
@@ -127,7 +135,13 @@ const EditorComponent = () => {
   };
 
   const insertBlock = (
-    type: "heading" | "paragraph" | "code" | "image" | "lineBreak"
+    type:
+      | "heading"
+      | "paragraph"
+      | "code"
+      | "image"
+      | "lineBreak"
+      | "unorderedlist"
   ) => {
     if (type === "image") {
       const fileInput = document.createElement("input");
@@ -154,6 +168,7 @@ const EditorComponent = () => {
     } else if (type === "lineBreak") {
       const block = { type, children: [{ text: "" }] };
       Transforms.insertNodes(editor, block);
+    } else if (type === "unorderedlist") {
     } else {
       const block = { type, children: [{ text: "" }] };
       Transforms.insertNodes(editor, block);
@@ -192,46 +207,18 @@ const EditorComponent = () => {
           style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
           className="absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
         >
-          <li ref={toolbarRef}>
-            <button
-              className="block px-2 py-1 hover:bg-gray-200"
-              onClick={() => insertBlock("heading")}
-            >
-              Heading
-            </button>
-          </li>
-          <li>
-            <button
-              className="block px-2 py-1 hover:bg-gray-200"
-              onClick={() => insertBlock("paragraph")}
-            >
-              Paragraph
-            </button>
-          </li>
-          <li>
-            <button
-              className="block px-2 py-1 hover:bg-gray-200"
-              onClick={() => insertBlock("code")}
-            >
-              Code
-            </button>
-          </li>
-          <li>
-            <button
-              className="block px-2 py-1 hover:bg-gray-200"
-              onClick={() => insertBlock("image")}
-            >
-              Image
-            </button>
-          </li>
-          <li>
-            <button
-              className="block px-2 py-1 hover:bg-gray-200"
-              onClick={() => insertBlock("lineBreak")}
-            >
-              Line Break
-            </button>
-          </li>
+          {Tools.map((tool) => {
+            return (
+              <li key={tool.id}>
+                <button
+                  className="block px-2 py-1 hover:bg-gray-200"
+                  onClick={() => insertBlock(tool.value)}
+                >
+                  {tool.name}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
