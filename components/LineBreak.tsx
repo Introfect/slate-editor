@@ -6,7 +6,7 @@ function LineBreak(props: RenderElementProps) {
     <BlockWrapper {...props}>
       <hr
         {...props.attributes}
-        className=" w-full font-bold text-slate-700"
+        className=" w-full font-bold text-slate-700 my-4"
       ></hr>
     </BlockWrapper>
   );

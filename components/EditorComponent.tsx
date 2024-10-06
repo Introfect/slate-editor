@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import TextareaAutosize from "react-textarea-autosize";
 import {
   BaseEditor,
   createEditor,
@@ -27,7 +28,9 @@ import ImageElement from "./ImageElement";
 import ParagraphElement from "./ParagraphElement";
 import LineBreak from "./LineBreak";
 import UnorderdListPlugin from "./UnorderdListPlugin";
-import { Tools } from "@/utils/constants";
+import { getTools } from "@/utils/constants";
+import { twMerge } from "tailwind-merge";
+import Tools from "./Tools";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 type CustomElement =
@@ -54,12 +57,12 @@ const EditorComponent = () => {
   );
 
   const [value, setValue] = useState<Descendant[]>([]);
-  console.log(value);
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
     left: number;
   } | null>(null);
+  const [selectedTool, setSelectedTool] = useState<number>(1);
 
   const toolbarRef = useRef<HTMLLIElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -97,9 +100,16 @@ const EditorComponent = () => {
 
   useEffect(() => {
     textareaRef.current?.focus();
-  }, [editor]);
-
+  }, []);
+  const headerKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && textareaRef.current !== null) {
+      console.log("Inside block");
+      event.preventDefault();
+      ReactEditor.focus(editor);
+    }
+  };
   const onKeyDown = (event: React.KeyboardEvent) => {
+    console.log(event.key);
     if (event.key === "/") {
       event.preventDefault();
       const { selection } = editor;
@@ -118,12 +128,18 @@ const EditorComponent = () => {
         }
       }
     }
-    if (event.key === "ArrowDown") {
+    if (event.key === "ArrowDown" && showToolbar) {
+      setSelectedTool((prev) => prev + 1);
+    }
+    if (event.key === "ArrowUp" && showToolbar) {
+      setSelectedTool((prev) => prev - 1);
+    }
+    if (showToolbar && event.key === "Enter") {
+      const activeToool = Tools.filter((item) => item.id === selectedTool);
+      insertBlock(activeToool[0].value);
     }
     if (event.key === "Enter") {
-      console.log("Enter event");
       const { selection } = editor;
-
       if (selection) {
         const type = "paragraph";
         const newBlock: CustomElement = { type, children: [{ text: "" }] };
@@ -131,6 +147,11 @@ const EditorComponent = () => {
         Transforms.insertNodes(editor, newBlock);
       }
       setShowToolbar(false);
+    }
+    if (event.key === "Backspace") {
+      if (value.length === 1 && value[0].children[0].text.length === 0) {
+        textareaRef.current?.focus();
+      }
     }
   };
 
@@ -179,44 +200,53 @@ const EditorComponent = () => {
 
   const initialValue: Descendant[] = [
     {
-      type: "heading",
+      type: "paragraph",
       children: [{ text: "" }],
     },
   ];
   if (showToolbar) {
     toolbarRef.current?.focus();
   }
+  const toolsList = getTools();
   return (
     <div className="relative">
-      <Slate
-        editor={editor}
-        onChange={(value) => setValue(value)}
-        initialValue={initialValue}
-      >
-        <Editable
-          placeholder="Start typing or use / for commands"
-          renderElement={renderElement}
-          onKeyDown={onKeyDown}
-          className="focus:outline-none"
-          autoFocus
+      <div className="prose prose-stone dark:prose-invert">
+        <TextareaAutosize
+          ref={textareaRef}
+          placeholder="Title"
+          className="w-full resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none"
+          onKeyDown={headerKeyDown}
         />
-      </Slate>
 
+        <Slate
+          editor={editor}
+          onChange={(value) => setValue(value)}
+          initialValue={initialValue}
+        >
+          <Editable
+            placeholder="Start typing or use / for commands"
+            renderElement={renderElement}
+            className="focus:outline-none"
+            autoFocus
+            onKeyDown={onKeyDown}
+          />
+        </Slate>
+      </div>
       {showToolbar && toolbarPosition && (
         <ul
           style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
-          className="absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
+          className={twMerge(
+            "absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
+          )}
         >
-          {Tools.map((tool) => {
+          {toolsList.map((tool) => {
             return (
-              <li key={tool.id}>
-                <button
-                  className="block px-2 py-1 hover:bg-gray-200"
-                  onClick={() => insertBlock(tool.value)}
-                >
-                  {tool.name}
-                </button>
-              </li>
+              <Tools
+                key={tool.id}
+                tool={tool}
+                slectedTool={selectedTool}
+                insertBlock={insertBlock}
+              />
             );
           })}
         </ul>
