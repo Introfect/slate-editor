@@ -14,7 +14,7 @@ export type ToolType = {
   icon?: ReactNode;
 };
 
-export const getTools = () => {
+export const getTools = (): ToolType[] => {
   return [
     {
       id: 1,
@@ -56,3 +56,5 @@ export const getTools = () => {
 };
 
 export const toolbarStyles = "bg-red-400";
+
+export const LIST_TYPES = ["unordered-list"];

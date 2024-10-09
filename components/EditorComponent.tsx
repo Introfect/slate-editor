@@ -33,7 +33,7 @@ import { twMerge } from "tailwind-merge";
 import Tools from "./Tools";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
-type CustomElement =
+export type CustomElement =
   | { type: "image"; src: string; children: CustomText[] }
   | { type: "paragraph"; children: CustomText[] }
   | { type: "code"; children: CustomText[] }
@@ -42,7 +42,6 @@ type CustomElement =
   | { type: "unorderedlist"; children: CustomText[] };
 
 type CustomText = { text: string };
-
 declare module "slate" {
   interface CustomTypes {
     Editor: CustomEditor;
@@ -50,6 +49,7 @@ declare module "slate" {
     Text: CustomText;
   }
 }
+
 const EditorComponent = () => {
   const editor = useMemo(
     () => withImages(withHistory(withReact(createEditor()))),
@@ -57,6 +57,7 @@ const EditorComponent = () => {
   );
 
   const [value, setValue] = useState<Descendant[]>([]);
+  console.log(value, "Value");
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
@@ -66,6 +67,13 @@ const EditorComponent = () => {
 
   const toolbarRef = useRef<HTMLLIElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const initialValue: Descendant[] = [
+    {
+      type: "paragraph",
+      children: [{ text: "" }],
+    },
+  ];
 
   const renderElement = useCallback((props: RenderElementProps) => {
     switch (props.element.type) {
@@ -88,6 +96,17 @@ const EditorComponent = () => {
     }
   }, []);
 
+  const insertParagraphBlock = () => {
+    const type = "paragraph";
+    const paragraphBlock: CustomElement = {
+      type,
+      children: [{ text: "" }],
+    };
+    Transforms.insertNodes(editor, paragraphBlock, {
+      at: [editor.children.length],
+    });
+  };
+
   const insertImage = (src: string) => {
     const text = { text: "" };
     const image: CustomElement = { type: "image", src, children: [text] };
@@ -109,7 +128,6 @@ const EditorComponent = () => {
     }
   };
   const onKeyDown = (event: React.KeyboardEvent) => {
-    console.log(event.key);
     if (event.key === "/") {
       event.preventDefault();
       const { selection } = editor;
@@ -135,16 +153,27 @@ const EditorComponent = () => {
       setSelectedTool((prev) => prev - 1);
     }
     if (showToolbar && event.key === "Enter") {
-      const activeToool = Tools.filter((item) => item.id === selectedTool);
+      console.log("Enter call in toolbar blockl");
+      event.preventDefault();
+      const ToolList = getTools();
+      const activeToool = ToolList.filter((item) => item.id === selectedTool);
       insertBlock(activeToool[0].value);
+      event.preventDefault();
     }
     if (event.key === "Enter") {
+      event.preventDefault();
+      console.log("enter call");
       const { selection } = editor;
-      if (selection) {
-        const type = "paragraph";
-        const newBlock: CustomElement = { type, children: [{ text: "" }] };
 
-        Transforms.insertNodes(editor, newBlock);
+      if (selection) {
+        const selected = editor.children[selection.anchor.path[0]];
+        if (selected.type === "unorderedlist") {
+          const type = "unorderedlist";
+          insertBlock(type);
+        } else {
+          const type = "paragraph";
+          insertBlock(type);
+        }
       }
       setShowToolbar(false);
     }
@@ -188,25 +217,22 @@ const EditorComponent = () => {
       fileInput.click();
     } else if (type === "lineBreak") {
       const block = { type, children: [{ text: "" }] };
-      Transforms.insertNodes(editor, block);
-    } else if (type === "unorderedlist") {
+      Transforms.insertNodes(editor, block, {
+        at: [editor.children.length],
+      });
+      insertParagraphBlock();
+      Transforms.select(editor, Editor.end(editor, []));
     } else {
       const block = { type, children: [{ text: "" }] };
-      Transforms.insertNodes(editor, block);
-      ReactEditor.focus(editor);
+      Transforms.insertNodes(editor, block, {
+        at: [editor.children.length],
+      });
+      console.log(Editor.end(editor, []), "editor end");
+      Transforms.select(editor, Editor.end(editor, []));
     }
     setShowToolbar(false);
   };
 
-  const initialValue: Descendant[] = [
-    {
-      type: "paragraph",
-      children: [{ text: "" }],
-    },
-  ];
-  if (showToolbar) {
-    toolbarRef.current?.focus();
-  }
   const toolsList = getTools();
   return (
     <div className="relative">

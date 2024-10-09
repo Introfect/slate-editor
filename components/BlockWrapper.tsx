@@ -13,7 +13,6 @@ const BlockWrapper = ({
 
   const deleteBlock = () => {
     const path = ReactEditor.findPath(editor, element);
-    console.log(path, "path find");
     Transforms.removeNodes(editor, { at: path });
     setShowOptions(false);
   };
