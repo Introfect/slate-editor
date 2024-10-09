@@ -4,10 +4,13 @@ import BlockWrapper from "./BlockWrapper";
 function LineBreak(props: RenderElementProps) {
   return (
     <BlockWrapper {...props}>
-      <hr
+      <div
         {...props.attributes}
-        className=" w-full font-bold text-slate-700 my-4"
-      ></hr>
+        contentEditable={false}
+        className=" w-full font-bold h-[2px] bg-gray-700/20 text-slate-700 my-4"
+      >
+        {props.children}
+      </div>
     </BlockWrapper>
   );
 }

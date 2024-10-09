@@ -7,13 +7,7 @@ import React, {
   useState,
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import {
-  BaseEditor,
-  createEditor,
-  Descendant,
-  Editor,
-  Transforms,
-} from "slate";
+import { BaseEditor, createEditor, Descendant, Editor } from "slate";
 import {
   Slate,
   Editable,
@@ -31,6 +25,7 @@ import UnorderdListPlugin from "./UnorderdListPlugin";
 import { getTools } from "@/utils/constants";
 import { twMerge } from "tailwind-merge";
 import Tools from "./Tools";
+import { InsertBlock as insertBlock } from "@/utils/hooks";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 export type CustomElement =
@@ -46,7 +41,7 @@ declare module "slate" {
   interface CustomTypes {
     Editor: CustomEditor;
     Element: CustomElement;
-    Text: CustomText;
+    Text: CustomText | null;
   }
 }
 
@@ -65,7 +60,6 @@ const EditorComponent = () => {
   } | null>(null);
   const [selectedTool, setSelectedTool] = useState<number>(1);
 
-  const toolbarRef = useRef<HTMLLIElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const initialValue: Descendant[] = [
@@ -96,27 +90,6 @@ const EditorComponent = () => {
     }
   }, []);
 
-  const insertParagraphBlock = () => {
-    const type = "paragraph";
-    const paragraphBlock: CustomElement = {
-      type,
-      children: [{ text: "" }],
-    };
-    Transforms.insertNodes(editor, paragraphBlock, {
-      at: [editor.children.length],
-    });
-  };
-
-  const insertImage = (src: string) => {
-    const text = { text: "" };
-    const image: CustomElement = { type: "image", src, children: [text] };
-    Transforms.insertNodes(editor, image);
-    const type = "paragraph";
-    const newBlock: CustomElement = { type, children: [{ text: "" }] };
-    Transforms.insertNodes(editor, newBlock);
-    ReactEditor.focus(editor);
-  };
-
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
@@ -127,7 +100,7 @@ const EditorComponent = () => {
       ReactEditor.focus(editor);
     }
   };
-  const onKeyDown = (event: React.KeyboardEvent) => {
+  const OnKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "/") {
       event.preventDefault();
       const { selection } = editor;
@@ -157,7 +130,7 @@ const EditorComponent = () => {
       event.preventDefault();
       const ToolList = getTools();
       const activeToool = ToolList.filter((item) => item.id === selectedTool);
-      insertBlock(activeToool[0].value);
+      insertBlock(activeToool[0].value, setShowToolbar, editor);
       event.preventDefault();
     }
     if (event.key === "Enter") {
@@ -169,10 +142,10 @@ const EditorComponent = () => {
         const selected = editor.children[selection.anchor.path[0]];
         if (selected.type === "unorderedlist") {
           const type = "unorderedlist";
-          insertBlock(type);
+          insertBlock(type, setShowToolbar, editor);
         } else {
           const type = "paragraph";
-          insertBlock(type);
+          insertBlock(type, setShowToolbar, editor);
         }
       }
       setShowToolbar(false);
@@ -184,63 +157,14 @@ const EditorComponent = () => {
     }
   };
 
-  const insertBlock = (
-    type:
-      | "heading"
-      | "paragraph"
-      | "code"
-      | "image"
-      | "lineBreak"
-      | "unorderedlist"
-  ) => {
-    if (type === "image") {
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.accept = "image/*";
-
-      fileInput.onchange = () => {
-        const file = fileInput.files?.[0];
-        if (file) {
-          const reader = new FileReader();
-
-          reader.onload = () => {
-            const url = reader.result;
-            if (url) {
-              insertImage(url.toString());
-            }
-          };
-
-          reader.readAsDataURL(file);
-        }
-      };
-
-      fileInput.click();
-    } else if (type === "lineBreak") {
-      const block = { type, children: [{ text: "" }] };
-      Transforms.insertNodes(editor, block, {
-        at: [editor.children.length],
-      });
-      insertParagraphBlock();
-      Transforms.select(editor, Editor.end(editor, []));
-    } else {
-      const block = { type, children: [{ text: "" }] };
-      Transforms.insertNodes(editor, block, {
-        at: [editor.children.length],
-      });
-      console.log(Editor.end(editor, []), "editor end");
-      Transforms.select(editor, Editor.end(editor, []));
-    }
-    setShowToolbar(false);
-  };
-
   const toolsList = getTools();
   return (
     <div className="relative">
-      <div className="prose prose-stone dark:prose-invert">
+      <div className="prose prose-stone dark:prose-invert ">
         <TextareaAutosize
           ref={textareaRef}
           placeholder="Title"
-          className="w-full resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none"
+          className="w-full resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none ml-8"
           onKeyDown={headerKeyDown}
         />
 
@@ -254,7 +178,7 @@ const EditorComponent = () => {
             renderElement={renderElement}
             className="focus:outline-none"
             autoFocus
-            onKeyDown={onKeyDown}
+            onKeyDown={OnKeyDown}
           />
         </Slate>
       </div>
