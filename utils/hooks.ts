@@ -23,17 +23,24 @@ const insertParagraphBlock = (editor: CustomEditor) => {
   });
 };
 
-export const insertBlock = (
+export const InsertBlock = ({
+  type,
+  setShowToolbar,
+  editor,
+  text = "",
+}: {
   type:
     | "heading"
     | "paragraph"
     | "code"
     | "image"
     | "lineBreak"
-    | "unorderedlist",
-  setShowToolbar: React.Dispatch<React.SetStateAction<boolean>>,
-  editor: CustomEditor
-) => {
+    | "unorderedlist";
+  setShowToolbar: React.Dispatch<React.SetStateAction<boolean>>;
+  editor: CustomEditor;
+  text: string;
+}) => {
+  console.log("calls");
   if (type === "image") {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -64,10 +71,9 @@ export const insertBlock = (
     insertParagraphBlock(editor);
     Transforms.select(editor, Editor.end(editor, []));
   } else {
-    const block = { type, children: [{ text: "" }] };
+    const block = { type, children: [{ text: text }] };
     Transforms.insertNodes(editor, block);
   }
-  console.log(Editor.end(editor, []), "editor end");
   ReactEditor.focus(editor);
   setShowToolbar(false);
 };

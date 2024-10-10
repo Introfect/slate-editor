@@ -7,7 +7,13 @@ import React, {
   useState,
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { BaseEditor, createEditor, Descendant, Editor } from "slate";
+import {
+  BaseEditor,
+  createEditor,
+  Descendant,
+  Editor,
+  Transforms,
+} from "slate";
 import {
   Slate,
   Editable,
@@ -25,7 +31,7 @@ import UnorderdListPlugin from "./UnorderdListPlugin";
 import { getTools } from "@/utils/constants";
 import { twMerge } from "tailwind-merge";
 import Tools from "./Tools";
-import { InsertBlock as insertBlock } from "@/utils/hooks";
+import { InsertBlock } from "@/utils/hooks";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 export type CustomElement =
@@ -41,7 +47,7 @@ declare module "slate" {
   interface CustomTypes {
     Editor: CustomEditor;
     Element: CustomElement;
-    Text: CustomText | null;
+    Text: CustomText;
   }
 }
 
@@ -51,8 +57,13 @@ const EditorComponent = () => {
     []
   );
 
-  const [value, setValue] = useState<Descendant[]>([]);
-  console.log(value, "Value");
+  const initialValue: Descendant[] = [
+    {
+      type: "paragraph",
+      children: [{ text: "" }],
+    },
+  ];
+  const [value, setValue] = useState<Descendant[]>(initialValue);
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
@@ -61,13 +72,6 @@ const EditorComponent = () => {
   const [selectedTool, setSelectedTool] = useState<number>(1);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const initialValue: Descendant[] = [
-    {
-      type: "paragraph",
-      children: [{ text: "" }],
-    },
-  ];
 
   const renderElement = useCallback((props: RenderElementProps) => {
     switch (props.element.type) {
@@ -95,7 +99,6 @@ const EditorComponent = () => {
   }, []);
   const headerKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" && textareaRef.current !== null) {
-      console.log("Inside block");
       event.preventDefault();
       ReactEditor.focus(editor);
     }
@@ -118,39 +121,80 @@ const EditorComponent = () => {
           setShowToolbar(!showToolbar);
         }
       }
-    }
-    if (event.key === "ArrowDown" && showToolbar) {
+    } else if (event.key === "ArrowDown" && showToolbar) {
       setSelectedTool((prev) => prev + 1);
-    }
-    if (event.key === "ArrowUp" && showToolbar) {
+    } else if (event.key === "ArrowUp" && showToolbar) {
       setSelectedTool((prev) => prev - 1);
-    }
-    if (showToolbar && event.key === "Enter") {
-      console.log("Enter call in toolbar blockl");
+    } else if (showToolbar && event.key === "Enter") {
       event.preventDefault();
       const ToolList = getTools();
       const activeToool = ToolList.filter((item) => item.id === selectedTool);
-      insertBlock(activeToool[0].value, setShowToolbar, editor);
-      event.preventDefault();
+      InsertBlock({
+        type: activeToool[0].value,
+        setShowToolbar,
+        editor,
+        text: "",
+      });
     }
-    if (event.key === "Enter") {
+    // if (
+    //   event.key === "ArrowRight" ||
+    //   event.key === "ArrowLeft" ||
+    //   event.key === "ArrowUp" ||
+    //   event.key === "ArrowDown"
+    // ) {
+    //   const { selection } = editor;
+
+    //   if (selection) {
+    //     const selected = editor.children[selection.anchor.path[0]];
+    //     if (selected?.type === "unorderedlist") {
+    //       const blocklength = selected.children[0].text.length;
+    //       const cursorFocus = selection.focus.offset;
+    //       if (blocklength) console.log(cursorFocus, "newSel");
+    //     }
+    //   }
+    // }
+    else if (event.key === "Enter") {
       event.preventDefault();
-      console.log("enter call");
       const { selection } = editor;
 
       if (selection) {
         const selected = editor.children[selection.anchor.path[0]];
-        if (selected.type === "unorderedlist") {
-          const type = "unorderedlist";
-          insertBlock(type, setShowToolbar, editor);
+        if (selected?.type === "unorderedlist") {
+          const blocklength = selected.children[0].text.length;
+          const cursorFocus = selection.focus.offset;
+          if (blocklength !== cursorFocus) {
+            event.preventDefault();
+            const type = "unorderedlist";
+            const sliceCharacters =
+              selected.children[0].text.slice(cursorFocus);
+            InsertBlock({
+              type,
+              setShowToolbar,
+              editor,
+              text: sliceCharacters,
+            });
+          } else {
+            event.preventDefault();
+            const type = "unorderedlist";
+            InsertBlock({ type, setShowToolbar, editor, text: "" });
+          }
         } else {
           const type = "paragraph";
-          insertBlock(type, setShowToolbar, editor);
+          InsertBlock({ type, setShowToolbar, editor, text: "" });
         }
       }
       setShowToolbar(false);
-    }
-    if (event.key === "Backspace") {
+    } else if (event.key === "Tab") {
+      event.preventDefault();
+      const { selection } = editor;
+
+      if (selection) {
+        const selected = editor.children[selection.anchor.path[0]];
+        if (selected?.type === "unorderedlist") {
+          editor.move(editor, { edge: "start", unit: "line" });
+        }
+      }
+    } else if (event.key === "Backspace") {
       if (value.length === 1 && value[0].children[0].text.length === 0) {
         textareaRef.current?.focus();
       }
@@ -180,27 +224,28 @@ const EditorComponent = () => {
             autoFocus
             onKeyDown={OnKeyDown}
           />
+          {showToolbar && toolbarPosition && (
+            <ul
+              style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
+              className={twMerge(
+                "absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
+              )}
+            >
+              {toolsList.map((tool) => {
+                return (
+                  <Tools
+                    key={tool.id}
+                    tool={tool}
+                    selectedTool={selectedTool}
+                    insertBlock={InsertBlock}
+                    setShowToolbar={setShowToolbar}
+                  />
+                );
+              })}
+            </ul>
+          )}
         </Slate>
       </div>
-      {showToolbar && toolbarPosition && (
-        <ul
-          style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
-          className={twMerge(
-            "absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
-          )}
-        >
-          {toolsList.map((tool) => {
-            return (
-              <Tools
-                key={tool.id}
-                tool={tool}
-                slectedTool={selectedTool}
-                insertBlock={insertBlock}
-              />
-            );
-          })}
-        </ul>
-      )}
     </div>
   );
 };

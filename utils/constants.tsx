@@ -20,7 +20,7 @@ export const getTools = (): ToolType[] => {
       id: 1,
       name: "Heading",
       value: "heading",
-      icon: <Heading className="w-10" />,
+      icon: <Heading className="w-4" />,
     },
     {
       id: 2,
@@ -44,7 +44,7 @@ export const getTools = (): ToolType[] => {
       id: 5,
       name: "Unorderd List",
       value: "unorderedlist",
-      icon: <List />,
+      icon: <List className="w-4" />,
     },
     {
       id: 6,

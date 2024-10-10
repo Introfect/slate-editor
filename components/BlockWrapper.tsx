@@ -16,12 +16,7 @@ const BlockWrapper = ({
     Transforms.removeNodes(editor, { at: path });
     setShowOptions(false);
   };
-  const showReplace = element.type === "image" ? true : false;
 
-  console.log(element, "Block options");
-  const replaceImage = () => {
-    insertBlock;
-  };
   return (
     <div {...attributes} className="flex group">
       <button
@@ -39,14 +34,6 @@ const BlockWrapper = ({
           >
             Delete Block
           </button>
-          {showReplace ? (
-            <button
-              className="block text-left w-full px-2 py-1 hover:bg-gray-200"
-              onClick={replaceImage}
-            >
-              Replace Image
-            </button>
-          ) : null}
         </div>
       )}
     </div>
