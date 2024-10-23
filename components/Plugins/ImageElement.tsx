@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { RenderElementProps } from "slate-react";
-import BlockWrapper from "./BlockWrapper";
+import BlockWrapper from "../BlockWrapper";
 
 const ImageElement = (props: RenderElementProps) => {
   if (props.element.type !== "image") {

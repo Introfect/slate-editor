@@ -1,16 +1,6 @@
-import { CustomEditor, CustomElement } from "@/components/EditorComponent";
-import { Editor, Transforms } from "slate";
+import { Editor, Location, Transforms } from "slate";
 import { ReactEditor } from "slate-react";
-
-const insertImage = (src: string, editor: CustomEditor) => {
-  const text = { text: "" };
-  const image: CustomElement = { type: "image", src, children: [text] };
-  Transforms.insertNodes(editor, image);
-  const type = "paragraph";
-  const newBlock: CustomElement = { type, children: [{ text: "" }] };
-  Transforms.insertNodes(editor, newBlock);
-  ReactEditor.focus(editor);
-};
+import { CustomEditor, CustomElement } from "./types";
 
 const insertParagraphBlock = (editor: CustomEditor) => {
   const type = "paragraph";
@@ -23,11 +13,18 @@ const insertParagraphBlock = (editor: CustomEditor) => {
   });
 };
 
-export const InsertBlock = ({
+const insertImage = (src: string, editor: CustomEditor) => {
+  const text = { text: "" };
+  const image: CustomElement = { type: "image", src, children: [text] };
+  Transforms.insertNodes(editor, image);
+  insertParagraphBlock(editor);
+  ReactEditor.focus(editor);
+};
+
+export const insertBlock = ({
   type,
-  setShowToolbar,
   editor,
-  text = "",
+  location,
 }: {
   type:
     | "heading"
@@ -35,12 +32,11 @@ export const InsertBlock = ({
     | "code"
     | "image"
     | "lineBreak"
-    | "unorderedlist";
-  setShowToolbar: React.Dispatch<React.SetStateAction<boolean>>;
+    | "unorderedlist"
+    | "list-item";
   editor: CustomEditor;
-  text: string;
+  location?: Location;
 }) => {
-  console.log("calls");
   if (type === "image") {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -70,10 +66,28 @@ export const InsertBlock = ({
     });
     insertParagraphBlock(editor);
     Transforms.select(editor, Editor.end(editor, []));
+  } else if (type === "unorderedlist") {
+    const listBlock: CustomElement = {
+      type: "unorderedlist",
+      children: [
+        {
+          type: "list-item",
+          children: [{ text: "" }],
+        },
+      ],
+    };
+    Transforms.insertNodes(editor, listBlock);
+  } else if (type === "list-item") {
+    const listItemBlock = { type: type, children: [{ text: "" }] };
+    Transforms.insertNodes(editor, listItemBlock);
   } else {
-    const block = { type, children: [{ text: text }] };
-    Transforms.insertNodes(editor, block);
+    const block = { type, children: [{ text: "" }] };
+    if (location) {
+      Transforms.insertNodes(editor, block, { at: [editor.children.length] });
+    } else {
+      Transforms.insertNodes(editor, block);
+    }
   }
+
   ReactEditor.focus(editor);
-  setShowToolbar(false);
 };

@@ -1,5 +1,5 @@
 import { RenderElementProps } from "slate-react";
-import BlockWrapper from "./BlockWrapper";
+import BlockWrapper from "../BlockWrapper";
 
 function LineBreak(props: RenderElementProps) {
   return (

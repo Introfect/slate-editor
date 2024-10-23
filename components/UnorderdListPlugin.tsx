@@ -5,7 +5,9 @@ import BlockWrapper from "./BlockWrapper";
 function UnorderdListPlugin(props: RenderElementProps) {
   return (
     <BlockWrapper {...props.attributes} {...props.children} {...props.element}>
-      <li {...props.attributes}>{props.children}</li>
+      <ul className="list-disc" {...props.attributes}>
+        {...props.children}
+      </ul>
     </BlockWrapper>
   );
 }

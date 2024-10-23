@@ -1,4 +1,5 @@
 import { ToolType } from "@/utils/constants";
+import { useToolbarStore } from "@/utils/store";
 import React from "react";
 import { useSlate } from "slate-react";
 import { twMerge } from "tailwind-merge";
@@ -8,33 +9,39 @@ type Props = {
   selectedTool: number;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   insertBlock: Function;
-  setShowToolbar: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function Tools({ tool, selectedTool, insertBlock, setShowToolbar }: Props) {
+function Tools({ tool, selectedTool, insertBlock }: Props) {
   const editor = useSlate();
+  const hideToolbar = useToolbarStore((state) => state.hideToolbar);
+
   const handleBlockInsert = (
-    e: React.MouseEvent<HTMLButtonElement>,
+    e: React.MouseEvent<HTMLLIElement>,
     value: string
   ) => {
     e.preventDefault();
-    insertBlock({ type: value, setShowToolbar, editor, text: "" });
+    const location = editor.end;
+    insertBlock({
+      type: value,
+      editor,
+      location: location,
+    });
+    hideToolbar();
   };
   const arrowSelect = selectedTool == tool.id ? true : false;
   const iconColor = arrowSelect ? "text-white" : "text-black";
   return (
-    <li className="w-full">
-      <button
+    <li className="w-full" onClick={(e) => handleBlockInsert(e, tool.value)}>
+      <div
         className={`flex w-full items-center rounded-md px-2 py-1 hover:bg-gray-200 group ${
           arrowSelect ? "bg-gray-300" : ""
         }`}
-        onClick={(e) => handleBlockInsert(e, tool.value)}
       >
         <span className={twMerge(`mr-2 p-2 text-black`, iconColor)}>
           {tool.icon}
         </span>
         <p>{tool.name}</p>
-      </button>
+      </div>
     </li>
   );
 }
