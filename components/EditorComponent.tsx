@@ -29,6 +29,10 @@ import { insertBlock } from "@/utils/hooks";
 import LIstItem from "./Plugins/LIstItem";
 import { useSelectedToolStore, useToolbarStore } from "@/utils/store";
 import { CustomEditor, CustomElement, CustomText } from "@/utils/types";
+import CustomTableComponent from "./Plugins/CustomTableComponent";
+import TableHeaders from "./Plugins/TableHeaders";
+import TableRow from "./Plugins/TableRow";
+import TableDirectory from "./Plugins/TableDirectory";
 
 declare module "slate" {
   interface CustomTypes {
@@ -76,6 +80,18 @@ const EditorComponent = () => {
       }
       case "list-item": {
         return <LIstItem {...props} />;
+      }
+      case "table": {
+        return <CustomTableComponent {...props} />;
+      }
+      case "table-header": {
+        return <TableHeaders {...props} />;
+      }
+      case "table-row": {
+        return <TableRow {...props} />;
+      }
+      case "table-cell": {
+        return <TableDirectory {...props} />;
       }
       default:
         return <ParagraphElement {...props} />;
@@ -147,7 +163,8 @@ const EditorComponent = () => {
       const { selection } = editor;
 
       if (selection) {
-        const selected = editor.children[selection.anchor.path[0]];
+        const selected: CustomElement =
+          editor.children[selection.anchor.path[0]];
         if (selected?.type === "unorderedlist") {
           console.log(selected, "selected");
           // const blocklength = selected.children[0].text.length;
@@ -199,7 +216,7 @@ const EditorComponent = () => {
         <TextareaAutosize
           ref={textareaRef}
           placeholder="Title"
-          className="w-full resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none ml-8"
+          className="w-full text-gray-300 resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none ml-9"
           onKeyDown={headerKeyDown}
         />
 
@@ -211,7 +228,7 @@ const EditorComponent = () => {
           <Editable
             placeholder="Start typing or use / for commands"
             renderElement={renderElement}
-            className="focus:outline-none"
+            className="focus:outline-none text-gray-300"
             autoFocus
             onKeyDown={OnKeyDown}
           />

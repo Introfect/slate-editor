@@ -3,6 +3,7 @@ import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
 
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
+
 export type CustomElement =
   | { type: "image"; src: string; children: CustomText[] }
   | { type: "paragraph"; children: CustomText[] }
@@ -11,28 +12,26 @@ export type CustomElement =
   | { type: "lineBreak"; children: CustomText[] }
   | { type: "unorderedlist"; children: ListItemElement[] }
   | { type: "list-item"; children: CustomText[] }
-  | { type: "table"; children: CustomTableRow[] };
+  | { type: "table"; children: TableRowElement[] }
+  | { type: "table-row"; children: TableCellElement[] }
+  | { type: "table-header"; children: CustomText[] }
+  | { type: "table-cell"; children: CustomText[] };
 
 export type CustomText = { text: string };
+
 export type ListItemElement = {
   type: "list-item";
   children: (
     | CustomText
-    | { type: "unordered-list"; children: ListItemElement[] }
+    | { type: "unorderedlist"; children: ListItemElement[] }
   )[];
 };
 
-export type CustomTableRow = {
+export type TableRowElement = {
   type: "table-row";
-  children: CustomTableHeader[] | CustomTableDirectory[];
+  children: TableCellElement[];
 };
 
-export type CustomTableHeader = {
-  type: "table-header";
-  children: CustomText;
-};
-
-export type CustomTableDirectory = {
-  type: "table-directory";
-  children: CustomText;
-};
+export type TableCellElement =
+  | { type: "table-header"; children: CustomText[] }
+  | { type: "table-cell"; children: CustomText[] };

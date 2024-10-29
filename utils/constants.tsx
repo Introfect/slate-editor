@@ -1,4 +1,12 @@
-import { AlignJustify, Code, Heading, Image, List, Minus } from "lucide-react";
+import {
+  AlignJustify,
+  Code,
+  Heading,
+  Image,
+  List,
+  Minus,
+  Table,
+} from "lucide-react";
 import { ReactNode } from "react";
 
 export type ToolType = {
@@ -10,7 +18,8 @@ export type ToolType = {
     | "code"
     | "image"
     | "unorderedlist"
-    | "lineBreak";
+    | "lineBreak"
+    | "table";
   icon?: ReactNode;
 };
 
@@ -51,6 +60,12 @@ export const getTools = (): ToolType[] => {
       name: "Line Break",
       value: "lineBreak",
       icon: <Minus />,
+    },
+    {
+      id: 7,
+      name: "Table",
+      value: "table",
+      icon: <Table />,
     },
   ];
 };
