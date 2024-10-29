@@ -1,9 +1,9 @@
-import EditorComponent from "@/components/EditorComponent";
+import Hero from "@/components/Hero";
 
 export default function Home() {
   return (
-    <div className="min-h-screen py-8">
-      <EditorComponent />
+    <div className="h-screen">
+      <Hero />
     </div>
   );
 }
