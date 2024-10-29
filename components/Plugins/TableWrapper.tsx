@@ -1,7 +1,6 @@
-import { insertBlock } from "@/utils/hooks";
 import { TableCellElement, TableRowElement } from "@/utils/types";
 import React from "react";
-import { Editor, Transforms } from "slate";
+import { Editor, Element, Transforms } from "slate";
 import { RenderElementProps, useSlate } from "slate-react";
 
 function TableWrapper({ attributes, element, children }: RenderElementProps) {
@@ -14,11 +13,13 @@ function TableWrapper({ attributes, element, children }: RenderElementProps) {
   }) => {
     if (blockType === "column") {
       const tableNodes = Array.from(
-        Editor.nodes(editor, { match: (n) => n.type === "table" })
+        Editor.nodes(editor, {
+          match: (n) => Element.isElement(n) && n.type === "table",
+        })
       );
       if (tableNodes.length > 0) {
         const [table] = tableNodes;
-        table[0].children.forEach((row: any, rowIndex: number) => {
+        table[0].children.forEach((row, rowIndex: number) => {
           const newCell: TableCellElement = {
             type: "table-cell",
             children: [
@@ -34,7 +35,9 @@ function TableWrapper({ attributes, element, children }: RenderElementProps) {
       }
     } else {
       const tableNodes = Array.from(
-        Editor.nodes(editor, { match: (n) => n.type === "table" })
+        Editor.nodes(editor, {
+          match: (n) => Element.isElement(n) && n.type === "table",
+        })
       );
       if (tableNodes.length > 0) {
         const [table] = tableNodes;

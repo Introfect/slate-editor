@@ -1,4 +1,4 @@
-import { Editor, Location, Transforms } from "slate";
+import { Editor, Element, Location, Transforms } from "slate";
 import { ReactEditor } from "slate-react";
 import { CustomEditor, CustomElement } from "./types";
 
@@ -57,7 +57,10 @@ export const insertBlock = ({
     };
     fileInput.click();
   } else if (type === "lineBreak") {
-    const lineBreakBlock = { type: "lineBreak", children: [{ text: "" }] };
+    const lineBreakBlock: CustomElement = {
+      type: "lineBreak",
+      children: [{ text: "" }],
+    };
     Transforms.insertNodes(editor, lineBreakBlock, {
       at: [editor.children.length],
     });
@@ -91,7 +94,7 @@ export const insertBlock = ({
     Transforms.insertNodes(editor, tableBlock);
   } else if (type === "row") {
     const tableNode = Editor.above(editor, {
-      match: (n) => n.type === "table",
+      match: (n) => Element.isElement(n) && n.type === "table",
     });
     if (tableNode) {
       const [table, tablePath] = tableNode;
@@ -109,11 +112,11 @@ export const insertBlock = ({
     }
   } else if (type === "column") {
     const tableNode = Editor.above(editor, {
-      match: (n) => n.type === "table",
+      match: (n) => Element.isElement(n) && n.type === "table",
     });
     if (tableNode) {
       const [table, tablePath] = tableNode;
-      table.children.forEach((row: any, rowIndex: number) => {
+      table.children.forEach((row, rowIndex: number) => {
         const newCell: CustomElement = {
           type: rowIndex === 0 ? "table-header" : "table-cell",
           children: [

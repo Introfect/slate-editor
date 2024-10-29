@@ -19,6 +19,8 @@ export type CustomElement =
 
 export type CustomText = { text: string };
 
+export type CustomDescendant = CustomElement | CustomText;
+
 export type ListItemElement = {
   type: "list-item";
   children: (
@@ -35,3 +37,7 @@ export type TableRowElement = {
 export type TableCellElement =
   | { type: "table-header"; children: CustomText[] }
   | { type: "table-cell"; children: CustomText[] };
+
+export function isCustomElement(node: CustomDescendant): node is CustomElement {
+  return "type" in node;
+}

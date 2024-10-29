@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { createEditor, Editor, Node, Transforms } from "slate";
+import { createEditor, Editor, Element, Transforms } from "slate";
 import {
   Slate,
   Editable,
@@ -28,7 +28,13 @@ import Tools from "./Plugins/Tools";
 import { insertBlock } from "@/utils/hooks";
 import LIstItem from "./Plugins/LIstItem";
 import { useSelectedToolStore, useToolbarStore } from "@/utils/store";
-import { CustomEditor, CustomElement, CustomText } from "@/utils/types";
+import {
+  CustomDescendant,
+  CustomEditor,
+  CustomElement,
+  CustomText,
+  isCustomElement,
+} from "@/utils/types";
 import CustomTableComponent from "./Plugins/CustomTableComponent";
 import TableHeaders from "./Plugins/TableHeaders";
 import TableRow from "./Plugins/TableRow";
@@ -48,13 +54,13 @@ const EditorComponent = () => {
     []
   );
 
-  const initialValue: Node[] = [
+  const initialValue: CustomDescendant[] = [
     {
       type: "paragraph",
       children: [{ text: "" }],
     },
   ];
-  const [value, setValue] = useState<Node[]>(initialValue);
+  const [value, setValue] = useState<CustomDescendant[]>(initialValue);
   const [toolbarPosition, setToolbarPosition] = useState<{
     top: number;
     left: number;
@@ -163,26 +169,28 @@ const EditorComponent = () => {
       const { selection } = editor;
 
       if (selection) {
-        const selected: CustomElement =
+        const selected: CustomDescendant =
           editor.children[selection.anchor.path[0]];
-        if (selected?.type === "unorderedlist") {
-          console.log(selected, "selected");
-          // const blocklength = selected.children[0].text.length;
-          // const cursorFocus = selection.focus.offset;
+        if (isCustomElement(selected)) {
+          if (selected.type === "unorderedlist") {
+            console.log(selected, "selected");
+            // const blocklength = selected.children[0].text.length;
+            // const cursorFocus = selection.focus.offset;
 
-          event.preventDefault();
-          const type = "list-item";
-          insertBlock({ type, editor });
-        } else {
-          const type = "paragraph";
-          insertBlock({ type, editor });
+            event.preventDefault();
+            const type = "list-item";
+            insertBlock({ type, editor });
+          } else {
+            const type = "paragraph";
+            insertBlock({ type, editor });
+          }
         }
       }
       hideToolbar();
     } else if (event.key === "Tab") {
       event.preventDefault();
       const [match] = Editor.nodes(editor, {
-        match: (n) => n.type === "list-item",
+        match: (n) => Element.isElement(n) && n.type === "list-item",
       });
 
       if (match) {
@@ -194,16 +202,22 @@ const EditorComponent = () => {
       }
     } else if (event.key === "ArrowRight") {
       event.preventDefault();
-      const [match] = Editor.nodes(editor, {
-        match: (n) => n.type === "list-item",
+      const [match] = Editor.nodes<CustomElement>(editor, {
+        match: (n) => Element.isElement(n) && n.type === "list-item",
       });
 
       if (match) {
         Transforms.liftNodes(editor);
       }
     } else if (event.key === "Backspace") {
-      if (value.length === 1 && value[0].children[0].text.length === 0) {
-        textareaRef.current?.focus();
+      if (value.length === 1 && "children" in value[0]) {
+        const node = value[0];
+
+        if (node.children.length > 0 && "text" in node.children[0]) {
+          if (node.children[0].text.length === 0) {
+            textareaRef.current?.focus();
+          }
+        }
       }
     }
   };
