@@ -166,6 +166,16 @@ function Hero() {
                 </div>
               </div>
             </div>
+            <div
+              className="flex items-center justify-center mt-20
+            "
+            >
+              <img
+                src="/banner.jpg"
+                alt="image"
+                className="w-3/5 rounded-3xl overflow-contain"
+              />
+            </div>
           </div>
         </section>
       </div>
