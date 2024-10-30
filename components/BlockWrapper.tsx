@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Transforms } from "slate";
 import { ReactEditor, RenderElementProps, useSlate } from "slate-react";
 import { EllipsisVertical } from "lucide-react";
+import DragButton from "./DragButton";
 
 const BlockWrapper = ({
   attributes,
@@ -51,7 +52,10 @@ const BlockWrapper = ({
         className="opacity-0 group-hover:opacity-100 px-2 py-1 rounded-md text-sm group cursor-pointer"
         onClick={() => setShowOptions(!showOptions)}
       >
-        <EllipsisVertical />
+        <div className="flex">
+          <DragButton />
+          <EllipsisVertical />
+        </div>
       </button>
       {children}
       {showOptions && (

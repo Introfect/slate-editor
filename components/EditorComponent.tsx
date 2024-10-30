@@ -6,6 +6,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import TextareaAutosize from "react-textarea-autosize";
 import { createEditor, Editor, Element, Transforms } from "slate";
 import {
@@ -233,39 +235,40 @@ const EditorComponent = () => {
           className="w-full text-gray-300 resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none ml-9"
           onKeyDown={headerKeyDown}
         />
-
-        <Slate
-          editor={editor}
-          onChange={(value) => setValue(value)}
-          initialValue={initialValue}
-        >
-          <Editable
-            placeholder="Start typing or use / for commands"
-            renderElement={renderElement}
-            className="focus:outline-none text-gray-300"
-            autoFocus
-            onKeyDown={OnKeyDown}
-          />
-          {toolbar && toolbarPosition && (
-            <ul
-              style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
-              className={twMerge(
-                "absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
-              )}
-            >
-              {toolsList.map((tool) => {
-                return (
-                  <Tools
-                    key={tool.id}
-                    tool={tool}
-                    insertBlock={insertBlock}
-                    selectedTool={selectedToolbar}
-                  />
-                );
-              })}
-            </ul>
-          )}
-        </Slate>
+        <DndProvider backend={HTML5Backend}>
+          <Slate
+            editor={editor}
+            onChange={(value) => setValue(value)}
+            initialValue={initialValue}
+          >
+            <Editable
+              placeholder="Start typing or use / for commands"
+              renderElement={renderElement}
+              className="focus:outline-none text-gray-300"
+              autoFocus
+              onKeyDown={OnKeyDown}
+            />
+            {toolbar && toolbarPosition && (
+              <ul
+                style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
+                className={twMerge(
+                  "absolute bg-white border border-gray-300 p-2 rounded shadow-md z-10"
+                )}
+              >
+                {toolsList.map((tool) => {
+                  return (
+                    <Tools
+                      key={tool.id}
+                      tool={tool}
+                      insertBlock={insertBlock}
+                      selectedTool={selectedToolbar}
+                    />
+                  );
+                })}
+              </ul>
+            )}
+          </Slate>
+        </DndProvider>
       </div>
     </div>
   );
