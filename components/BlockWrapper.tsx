@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Transforms } from "slate";
 import { ReactEditor, RenderElementProps, useSlate } from "slate-react";
 import { EllipsisVertical } from "lucide-react";
-import DragButton from "./DragButton";
+import { useDrag } from "react-dnd";
 
 const BlockWrapper = ({
   attributes,
@@ -12,6 +12,13 @@ const BlockWrapper = ({
 }: RenderElementProps) => {
   const editor = useSlate();
   const [showOptions, setShowOptions] = useState(false);
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: "block",
+    item: { id: element.id },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }));
 
   const deleteBlock = () => {
     const path = ReactEditor.findPath(editor, element);
@@ -46,14 +53,18 @@ const BlockWrapper = ({
   };
   const isImage = element?.type === "image" ? true : false;
 
-  return (
-    <div {...attributes} className="flex group">
+  return drag(
+    <div
+      {...attributes}
+      className="flex group"
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+    >
       <button
         className="opacity-0 group-hover:opacity-100 px-2 py-1 rounded-md text-sm group cursor-pointer"
         onClick={() => setShowOptions(!showOptions)}
       >
         <div className="flex">
-          <DragButton />
+          <span contentEditable={false}>::</span>
           <EllipsisVertical />
         </div>
       </button>

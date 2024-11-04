@@ -1,11 +1,13 @@
 import { Editor, Element, Location, Transforms } from "slate";
 import { ReactEditor } from "slate-react";
 import { CustomEditor, CustomElement } from "./types";
+import { v4 as uuidv4 } from "uuid";
 
 const insertParagraphBlock = (editor: CustomEditor) => {
   const paragraphBlock: CustomElement = {
     type: "paragraph",
     children: [{ text: "" }],
+    id: uuidv4(),
   };
   Transforms.insertNodes(editor, paragraphBlock, {
     at: [editor.children.length],
@@ -14,7 +16,12 @@ const insertParagraphBlock = (editor: CustomEditor) => {
 
 const insertImage = (src: string, editor: CustomEditor) => {
   const text = { text: "" };
-  const image: CustomElement = { type: "image", src, children: [text] };
+  const image: CustomElement = {
+    type: "image",
+    src,
+    children: [text],
+    id: uuidv4(),
+  };
   Transforms.insertNodes(editor, image);
   insertParagraphBlock(editor);
   ReactEditor.focus(editor);
@@ -60,15 +67,22 @@ export const insertBlock = ({
     const lineBreakBlock: CustomElement = {
       type: "lineBreak",
       children: [{ text: "" }],
+      id: uuidv4(),
     };
     Transforms.insertNodes(editor, lineBreakBlock, {
       at: [editor.children.length],
     });
     insertParagraphBlock(editor);
   } else if (type === "unorderedlist") {
+    const listChildren: CustomElement = {
+      type: "list-item",
+      children: [{ text: "" }],
+      id: uuidv4(),
+    };
     const listBlock: CustomElement = {
       type: "unorderedlist",
-      children: [{ type: "list-item", children: [{ text: "" }] }],
+      children: [listChildren],
+      id: uuidv4(),
     };
     Transforms.insertNodes(editor, listBlock);
   } else if (type === "table") {
@@ -90,6 +104,7 @@ export const insertBlock = ({
           ],
         },
       ],
+      id: uuidv4(),
     };
     Transforms.insertNodes(editor, tableBlock);
   } else if (type === "row") {
@@ -105,6 +120,7 @@ export const insertBlock = ({
           type: "table-cell",
           children: [{ text: "" }],
         }),
+        id: uuidv4(),
       };
       Transforms.insertNodes(editor, newRow, {
         at: [...tablePath, table.children.length],
@@ -122,6 +138,7 @@ export const insertBlock = ({
           children: [
             { text: rowIndex === 0 ? `Header ${row.children.length + 1}` : "" },
           ],
+          id: uuidv4(),
         };
         Transforms.insertNodes(editor, newCell, {
           at: [...tablePath, rowIndex, row.children.length],
@@ -129,7 +146,7 @@ export const insertBlock = ({
       });
     }
   } else {
-    const block = { type, children: [{ text: "" }] };
+    const block = { type, children: [{ text: "" }], id: uuidv4() };
     Transforms.insertNodes(
       editor,
       block,

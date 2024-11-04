@@ -25,6 +25,7 @@
     "slate-prop-types": "^0.5.44",
     "slate-react": "^0.110.1",
     "tailwind-merge": "^2.5.2",
+    "uuid": "^11.0.2",
     "zustand": "^5.0.0"
   },
   "devDependencies": {

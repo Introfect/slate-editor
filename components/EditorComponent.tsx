@@ -6,8 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { v4 as uuidv4 } from "uuid";
 import TextareaAutosize from "react-textarea-autosize";
 import { createEditor, Editor, Element, Transforms } from "slate";
 import {
@@ -41,6 +40,7 @@ import CustomTableComponent from "./Plugins/CustomTableComponent";
 import TableHeaders from "./Plugins/TableHeaders";
 import TableRow from "./Plugins/TableRow";
 import TableDirectory from "./Plugins/TableDirectory";
+import { DroppableEditor } from "./DroppableEditor";
 
 declare module "slate" {
   interface CustomTypes {
@@ -60,6 +60,7 @@ const EditorComponent = () => {
     {
       type: "paragraph",
       children: [{ text: "" }],
+      id: uuidv4(),
     },
   ];
   const [value, setValue] = useState<CustomDescendant[]>(initialValue);
@@ -151,8 +152,10 @@ const EditorComponent = () => {
         }
       }
     } else if (event.key === "ArrowDown" && toolbar) {
+      event.preventDefault();
       increaseSelectedToolbar();
     } else if (event.key === "ArrowUp" && toolbar) {
+      event.preventDefault();
       decreaseSelectedToolBar();
     } else if (toolbar && event.key === "Enter") {
       console.log("inside toolbar ");
@@ -198,7 +201,7 @@ const EditorComponent = () => {
       if (match) {
         Transforms.wrapNodes(
           editor,
-          { type: "unorderedlist", children: [] },
+          { type: "unorderedlist", children: [], id: uuidv4() },
           { split: true }
         );
       }
@@ -232,10 +235,10 @@ const EditorComponent = () => {
         <TextareaAutosize
           ref={textareaRef}
           placeholder="Title"
-          className="w-full text-gray-300 resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none ml-9"
+          className="w-full text-gray-300 resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none ml-12"
           onKeyDown={headerKeyDown}
         />
-        <DndProvider backend={HTML5Backend}>
+        <DroppableEditor editor={editor}>
           <Slate
             editor={editor}
             onChange={(value) => setValue(value)}
@@ -247,7 +250,7 @@ const EditorComponent = () => {
               className="focus:outline-none text-gray-300"
               autoFocus
               onKeyDown={OnKeyDown}
-            />
+            ></Editable>
             {toolbar && toolbarPosition && (
               <ul
                 style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
@@ -268,7 +271,7 @@ const EditorComponent = () => {
               </ul>
             )}
           </Slate>
-        </DndProvider>
+        </DroppableEditor>
       </div>
     </div>
   );
